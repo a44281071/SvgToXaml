@@ -50,9 +50,11 @@ namespace SvgConverter
             //var obj = ConvertSvgToObject(filepath, resultMode, null, out name) as DependencyObject;
             //var xaml = SvgObjectToXaml(obj, false, name);
             //var svg = File.ReadAllText(filepath);
-           
-            return new ConvertedSvgData { Filepath = filepath
-            //, ConvertedObj = obj, Svg = svg, Xaml = xaml 
+
+            return new ConvertedSvgData
+            {
+                Filepath = filepath
+                //, ConvertedObj = obj, Svg = svg, Xaml = xaml 
             };
         }
 
@@ -163,21 +165,21 @@ namespace SvgConverter
                 .Distinct(StringComparer.InvariantCultureIgnoreCase) //same Color only once
                 .Select((s, i) => new
                 {
-                    ResKey1 = BuildColorName(i+1, resKeyInfo), 
-                    ResKey2 = BuildColorBrushName(i + 1, resKeyInfo), 
+                    ResKey1 = BuildColorName(i + 1, resKeyInfo),
+                    ResKey2 = BuildColorBrushName(i + 1, resKeyInfo),
                     Color = s
                 }) //add numbers
                 .ToList();
 
             //building global Elements like: <SolidColorBrush x:Key="ImagesColorBrush1" Color="{DynamicResource ImagesColor1}" />
             rootElement.AddFirst(allBrushes
-                .Select(brush => new XElement(NsDef + "SolidColorBrush", 
+                .Select(brush => new XElement(NsDef + "SolidColorBrush",
                     new XAttribute(Nsx + "Key", brush.ResKey2),
                     new XAttribute("Color", $"{{DynamicResource {brush.ResKey1}}}"))));
 
             //building global Elements like: <Color x:Key="ImagesColor1">#FF000000</Color>
             rootElement.AddFirst(allBrushes
-                .Select(brush => new XElement(NsDef + "Color", 
+                .Select(brush => new XElement(NsDef + "Color",
                     new XAttribute(Nsx + "Key", brush.ResKey1),
                     brush.Color)));
 
@@ -191,24 +193,24 @@ namespace SvgConverter
                 var keyDg = node.Attribute(Nsx + "Key").Value;
                 var elemName = GetElemNameFromResKey(keyDg, resKeyInfo);
                 var elemBaseName = elemName.Replace("DrawingGroup", "");
-                
+
                 var brushAttributes = CollectBrushAttributesWithColor(node).ToList();
-                
+
                 foreach (var brushAttribute in brushAttributes)
                 {
                     var color = brushAttribute.Value;
                     string resKeyColor;
                     if (colorKeys.TryGetValue(color, out resKeyColor))
                     {   //global color found
-                        
+
                         //build resourcename
                         var nameBrush = brushAttributes.Count > 1
                             ? $"{elemBaseName}Color{brushAttributes.IndexOf(brushAttribute) + 1}Brush"
                             : $"{elemBaseName}ColorBrush"; //dont add number if only one color
                         var resKeyBrush = BuildResKey(nameBrush, resKeyInfo);
-                        node.AddBeforeSelf(new XElement(NsDef + "SolidColorBrush", 
-                            new XAttribute(Nsx + "Key", resKeyBrush), 
-                            new XAttribute("Color", $"{{Binding Color, Source={BuildResKeyReference(resKeyColor, false)}}}") ));
+                        node.AddBeforeSelf(new XElement(NsDef + "SolidColorBrush",
+                            new XAttribute(Nsx + "Key", resKeyBrush),
+                            new XAttribute("Color", $"{{Binding Color, Source={BuildResKeyReference(resKeyColor, false)}}}")));
                         //set brush value as Reference
                         //  <GeometryDrawing Brush="{DynamicResource {x:Static nsname:Test.cloud-3-iconBrushColor}}" ... />
                         brushAttribute.Value = BuildResKeyReference(resKeyBrush, true);
@@ -224,7 +226,7 @@ namespace SvgConverter
             foreach (var node in drawingGroups)
             {
                 var brushAttributes = CollectBrushAttributesWithColor(node).ToList();
-                
+
                 foreach (var brushAttribute in brushAttributes)
                 {
                     var color = brushAttribute.Value;
@@ -386,8 +388,8 @@ namespace SvgConverter
         private static void FixIds(XElement root)
         {
             var idAttributesStartingWithDigit = root.DescendantsAndSelf()
-                .SelectMany(d=>d.Attributes())
-                .Where(a=>string.Equals(a.Name.LocalName, "Id", StringComparison.InvariantCultureIgnoreCase));
+                .SelectMany(d => d.Attributes())
+                .Where(a => string.Equals(a.Name.LocalName, "Id", StringComparison.InvariantCultureIgnoreCase));
             foreach (var attr in idAttributesStartingWithDigit)
             {
                 if (char.IsDigit(attr.Value.FirstOrDefault()))
@@ -407,7 +409,7 @@ namespace SvgConverter
 
         internal static string WpfObjToXaml(object wpfObject, bool includeRuntime)
         {
-            XmlXamlWriter writer = new XmlXamlWriter(new WpfDrawingSettings { IncludeRuntime = includeRuntime});
+            XmlXamlWriter writer = new XmlXamlWriter(new WpfDrawingSettings { IncludeRuntime = includeRuntime });
             var xaml = writer.Save(wpfObject);
             return xaml;
         }
@@ -545,7 +547,7 @@ namespace SvgConverter
                     : (int?)null;
                 var localName = BuildGeometryName(name, no, resKeyInfo);
                 //Add this: <Geometry x:Key="cloud_3_iconGeometry">F1 M512,512z M0,0z M409.338,216.254C398.922,351.523z</Geometry>
-                drawingGroupElement.AddBeforeSelf(new XElement(NsDef+"Geometry",
+                drawingGroupElement.AddBeforeSelf(new XElement(NsDef + "Geometry",
                     new XAttribute(Nsx + "Key", localName),
                     geo.Value));
                 geo.Value = BuildResKeyReference(localName, false);
@@ -575,12 +577,12 @@ namespace SvgConverter
 
         internal static string BuildDrawingGroupName(string elementName, ResKeyInfo resKeyInfo)
         {
-            var rawName = elementName + "DrawingGroup";
+            var rawName = ValidateName(elementName).Trim('_') + "_DrawingGroup";
             return BuildResKey(rawName, resKeyInfo);
         }
         internal static string BuildDrawingImageName(string elementName, ResKeyInfo resKeyInfo)
         {
-            var rawName = elementName + "DrawingImage";
+            var rawName = ValidateName(elementName).Trim('_') + "_DrawingImage";
             return BuildResKey(rawName, resKeyInfo);
         }
 

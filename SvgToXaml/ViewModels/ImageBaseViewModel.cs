@@ -1,7 +1,10 @@
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using SvgConverter;
 using SvgToXaml.Command;
 
 namespace SvgToXaml.ViewModels
@@ -34,6 +37,7 @@ namespace SvgToXaml.ViewModels
         {
             new DetailWindow { DataContext = imageBaseViewModel }.Show();
         }
+
 
         private void OpenFileExecute()
         {

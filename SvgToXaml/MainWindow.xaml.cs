@@ -1,13 +1,16 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Media;
 using SvgToXaml.Properties;
 using SvgToXaml.ViewModels;
 
 namespace SvgToXaml
 {
-	//todo: github oder codeplex anlegen
-	//todo: Fehlerbehandlung beim Laden
+    //todo: github oder codeplex anlegen
+    //todo: Fehlerbehandlung beim Laden
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -17,15 +20,24 @@ namespace SvgToXaml
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new SvgImagesViewModel();
-            ((SvgImagesViewModel) DataContext).CurrentDir = Settings.Default.LastDir;
+            var vm = new SvgImagesViewModel();
+
+            DataContext = vm;
+            vm.CurrentDir = Settings.Default.LastDir;
+            if (brushConverter.IsValid(Settings.Default.LastBackgroundBrush))
+            {
+                vm.SelectedBackgroundBrush = (Brush)brushConverter.ConvertFromString(Settings.Default.LastBackgroundBrush);
+            }
         }
 
-       
+        private readonly BrushConverter brushConverter = new();
+        private string filterText = "";
+
         protected override void OnClosing(CancelEventArgs e)
         {
             //Save current Dir for next Start
-            Settings.Default.LastDir = ((SvgImagesViewModel) DataContext).CurrentDir;
+            var vm = (SvgImagesViewModel)DataContext;
+            Settings.Default.LastDir = vm.CurrentDir;
             Settings.Default.Save();
 
             base.OnClosing(e);
@@ -41,7 +53,7 @@ namespace SvgToXaml
                 {
                     if (Directory.Exists(path))
                     {
-                        ((SvgImagesViewModel) DataContext).CurrentDir = path;
+                        ((SvgImagesViewModel)DataContext).CurrentDir = path;
                     }
                     else
                     {
@@ -53,7 +65,24 @@ namespace SvgToXaml
                 }
             }
         }
-    }
 
-   
+        private void filterTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            filterText = filterTextBox.Text?.Trim();
+            var cvs = (CollectionViewSource)this.FindResource("images_collection");
+            cvs.View?.Refresh();
+        }
+
+        private void CollectionViewSource_Filter(object sender, System.Windows.Data.FilterEventArgs e)
+        {
+            if (e.Item is not ImageBaseViewModel img) return;
+
+            string txt = filterText;
+            if (String.IsNullOrEmpty(txt)) e.Accepted = true;
+            else
+            {
+                e.Accepted = img.Filename.IndexOf(txt, StringComparison.OrdinalIgnoreCase) > -1;
+            }
+        }
+    }
 }

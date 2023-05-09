@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using SvgConverter;
+using SvgToXaml.Command;
 
 namespace SvgToXaml.ViewModels
 {
@@ -9,9 +12,9 @@ namespace SvgToXaml.ViewModels
     {
         private ConvertedSvgData _convertedSvgData;
 
-
         public SvgImageViewModel(string filepath) : base(filepath)
         {
+            CopyAsXamlCommand = new DelegateCommand(CopyAsXamlExecute);
         }
 
         public SvgImageViewModel(ConvertedSvgData convertedSvgData)
@@ -39,10 +42,10 @@ namespace SvgToXaml.ViewModels
         {
             if (PreviewSource is DrawingImage)
             {
-                var di = (DrawingImage) PreviewSource;
+                var di = (DrawingImage)PreviewSource;
                 if (di.Drawing is DrawingGroup)
                 {
-                    var dg = (DrawingGroup) di.Drawing;
+                    var dg = (DrawingGroup)di.Drawing;
                     var bounds = dg.ClipGeometry?.Bounds ?? dg.Bounds;
                     return $"{bounds.Width:#.##}x{bounds.Height:#.##}";
                 }
@@ -56,7 +59,6 @@ namespace SvgToXaml.ViewModels
         public string Svg => SvgData?.Svg;
 
         public string Xaml => SvgData?.Xaml;
-
 
         public ConvertedSvgData SvgData
         {
@@ -72,7 +74,7 @@ namespace SvgToXaml.ViewModels
                     {
                         return null;
                     }
-                    
+
                     //verzögertes Laden: ist scheiß lahm
                     //InUi(DispatcherPriority.Loaded, () =>
                     //{
@@ -82,6 +84,20 @@ namespace SvgToXaml.ViewModels
                     //return null;
                 }
                 return _convertedSvgData;
+            }
+        }
+
+        public ICommand CopyAsXamlCommand { get; }
+
+        private void CopyAsXamlExecute()
+        {
+            try
+            {
+                Clipboard.SetText(Xaml);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError(ex.Message);
             }
         }
     }

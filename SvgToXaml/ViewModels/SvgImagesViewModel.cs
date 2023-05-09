@@ -7,9 +7,11 @@ using System.Text;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 using SvgConverter;
 using SvgToXaml.Command;
 using SvgToXaml.Infrastructure;
+using SvgToXaml.Properties;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
@@ -30,7 +32,7 @@ namespace SvgToXaml.ViewModels
             InfoCommand = new DelegateCommand(InfoExecute);
 
             ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
-            ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute))); 
+            ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute)));
         }
 
         private void OpenFolderExecute()
@@ -51,8 +53,8 @@ namespace SvgToXaml.ViewModels
 
         private void ExportDirExecute()
         {
-            string outFileName = Path.GetFileNameWithoutExtension(CurrentDir) + ".xaml"; 
-            var saveDlg = new SaveFileDialog {AddExtension = true, DefaultExt = ".xaml", Filter = "Xaml-File|*.xaml", InitialDirectory = CurrentDir, FileName = outFileName};
+            string outFileName = Path.GetFileNameWithoutExtension(CurrentDir) + ".xaml";
+            var saveDlg = new SaveFileDialog { AddExtension = true, DefaultExt = ".xaml", Filter = "Xaml-File|*.xaml", InitialDirectory = CurrentDir, FileName = outFileName };
             if (saveDlg.ShowDialog() == DialogResult.OK)
             {
                 string namePrefix = null;
@@ -99,7 +101,7 @@ namespace SvgToXaml.ViewModels
                 var outputname = Path.GetFileNameWithoutExtension(outFileName);
                 var outputdir = Path.GetDirectoryName(outFileName);
                 var relOutputDir = FileUtils.MakeRelativePath(CurrentDir, PathIs.Folder, outputdir, PathIs.Folder);
-                var svgToXamlPath =System.Reflection.Assembly.GetEntryAssembly().Location;
+                var svgToXamlPath = System.Reflection.Assembly.GetEntryAssembly().Location;
                 var relSvgToXamlPath = FileUtils.MakeRelativePath(CurrentDir, PathIs.Folder, svgToXamlPath, PathIs.File);
                 var batchText = $"{relSvgToXamlPath} BuildDict /inputdir \".\" /outputdir \"{relOutputDir}\" /outputname {outputname}";
 
@@ -178,6 +180,21 @@ namespace SvgToXaml.ViewModels
             }
         }
 
+        public Brush[] BackgroundBrushes { get; } = new[] { Brushes.WhiteSmoke, Brushes.AliceBlue, Brushes.Pink, };
+        private Brush _SelectedBackgroundBrush = Brushes.WhiteSmoke;
+
+        public Brush SelectedBackgroundBrush
+        {
+            get => _SelectedBackgroundBrush;
+            set
+            {
+                if (SetProperty(ref _SelectedBackgroundBrush, value))
+                {
+                    Settings.Default.LastBackgroundBrush = value?.ToString();
+                }
+            }
+        }
+
         public ImageBaseViewModel SelectedItem
         {
             get { return _selectedItem; }
@@ -205,9 +222,9 @@ namespace SvgToXaml.ViewModels
 
             var graphicFiles = GetFilesMulti(folder, GraphicImageViewModel.SupportedFormats);
             var graphicImages = graphicFiles.Select(f => new GraphicImageViewModel(f));
-            
-            var allImages = svgImages.Concat<ImageBaseViewModel>(graphicImages).OrderBy(e=>e.Filepath);
-            
+
+            var allImages = svgImages.Concat<ImageBaseViewModel>(graphicImages).OrderBy(e => e.Filepath);
+
             Images.AddRange(allImages);
         }
 
@@ -224,5 +241,6 @@ namespace SvgToXaml.ViewModels
                 return new string[0];
             }
         }
+
     }
 }

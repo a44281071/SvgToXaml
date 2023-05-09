@@ -5,5 +5,8 @@
     <Setting Name="LastDir" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="LastBackgroundBrush" Type="System.String" Scope="User">
+      <Value Profile="(Default)">AliceBlue</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

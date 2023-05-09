@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -18,7 +19,14 @@ namespace SvgToXaml
 
         private void CopyToClipboardClick(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(XmlViewer.Text);
+            try
+            {
+                Clipboard.SetText(XmlViewer.Text);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError(ex.Message);
+            }
         }
 
         private void ToggleStretchClicked(object sender, MouseButtonEventArgs e)
