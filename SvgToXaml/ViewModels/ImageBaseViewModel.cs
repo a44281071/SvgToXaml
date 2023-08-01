@@ -16,13 +16,17 @@ namespace SvgToXaml.ViewModels
             Filepath = filepath;
             OpenDetailCommand = new DelegateCommand(OpenDetailExecute);
             OpenFileCommand = new DelegateCommand(OpenFileExecute);
+            OpenFileLocationCommand = new DelegateCommand(OpenFileLocationExecute);
         }
 
         public string Filepath { get; }
         public string Filename => Path.GetFileName(Filepath);
         public ImageSource PreviewSource => GetImageSource();
+
         public ICommand OpenDetailCommand { get; set; }
         public ICommand OpenFileCommand { get; set; }
+        public ICommand OpenFileLocationCommand { get; set; }
+
         protected abstract ImageSource GetImageSource();
         public abstract bool HasXaml { get; }
         public abstract bool HasSvg { get; }
@@ -38,10 +42,14 @@ namespace SvgToXaml.ViewModels
             new DetailWindow { DataContext = imageBaseViewModel }.Show();
         }
 
-
         private void OpenFileExecute()
         {
             Process.Start(Filepath);
+        }
+
+        private void OpenFileLocationExecute()
+        {
+            Process.Start("explorer.exe", string.Format($"""/select, "{Filepath}" """ ));
         }
 
         protected abstract string GetSvgDesignInfo();

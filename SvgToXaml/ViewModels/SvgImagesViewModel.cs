@@ -19,21 +19,29 @@ namespace SvgToXaml.ViewModels
 {
     public class SvgImagesViewModel : ViewModelBase
     {
-        private string _currentDir;
-        private ObservableCollectionSafe<ImageBaseViewModel> _images;
-        private ImageBaseViewModel _selectedItem;
-
         public SvgImagesViewModel()
         {
             _images = new ObservableCollectionSafe<ImageBaseViewModel>();
+
+            if (Settings.Default.LastBackgroundBrush is string savedBrush
+                && BackgroundBrushes.FirstOrDefault(dd=>dd.ToString() == savedBrush) is Brush select)
+            {
+                _SelectedBackgroundBrush = select;
+            }
+
             OpenFileCommand = new DelegateCommand(OpenFileExecute);
             OpenFolderCommand = new DelegateCommand(OpenFolderExecute);
             ExportDirCommand = new DelegateCommand(ExportDirExecute);
             InfoCommand = new DelegateCommand(InfoExecute);
-
-            ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
-            ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute)));
+            ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>
+            {
+                new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute))
+            };
         }
+
+        private string _currentDir;
+        private ObservableCollectionSafe<ImageBaseViewModel> _images;
+        private ImageBaseViewModel _selectedItem;
 
         private void OpenFolderExecute()
         {
@@ -74,7 +82,6 @@ namespace SvgToXaml.ViewModels
                     namePrefix = Microsoft.VisualBasic.Interaction.InputBox("Enter a namePrefix (or leave empty to not use it)", "Name Prefix");
                     if (string.IsNullOrWhiteSpace(namePrefix))
                         namePrefix = null;
-
                 }
 
                 outFileName = Path.GetFullPath(saveDlg.FileName);
@@ -85,7 +92,6 @@ namespace SvgToXaml.ViewModels
                     UseComponentResKeys = useComponentResKeys,
                     NameSpace = nameSpace,
                     NameSpaceName = nameSpaceName,
-
                 };
                 File.WriteAllText(outFileName, ConverterLogic.SvgDirToXaml(CurrentDir, resKeyInfo, false));
 
@@ -154,6 +160,7 @@ namespace SvgToXaml.ViewModels
         {
             MessageBox.Show("SvgToXaml © 2015 Bernd Klaiber\n\nPowered by\nsharpvectors.codeplex.com (Svg-Support),\nicsharpcode (AvalonEdit)", "Info");
         }
+
         private void OpenExplorerExecute(string path)
         {
             Process.Start(path);
@@ -181,6 +188,7 @@ namespace SvgToXaml.ViewModels
         }
 
         public Brush[] BackgroundBrushes { get; } = new[] { Brushes.WhiteSmoke, Brushes.AliceBlue, Brushes.Pink, };
+
         private Brush _SelectedBackgroundBrush = Brushes.WhiteSmoke;
 
         public Brush SelectedBackgroundBrush
@@ -241,6 +249,5 @@ namespace SvgToXaml.ViewModels
                 return new string[0];
             }
         }
-
     }
 }

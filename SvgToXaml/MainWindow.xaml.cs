@@ -24,10 +24,6 @@ namespace SvgToXaml
 
             DataContext = vm;
             vm.CurrentDir = Settings.Default.LastDir;
-            if (brushConverter.IsValid(Settings.Default.LastBackgroundBrush))
-            {
-                vm.SelectedBackgroundBrush = (Brush)brushConverter.ConvertFromString(Settings.Default.LastBackgroundBrush);
-            }
         }
 
         private readonly BrushConverter brushConverter = new();
