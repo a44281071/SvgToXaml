@@ -15,19 +15,19 @@ namespace SvgToXaml.Explorer
     public partial class FolderTree
     {
         public static readonly DependencyProperty CurrentFolderProperty = DependencyProperty.Register(
-            "CurrentFolder", typeof (string), typeof (FolderTree), new PropertyMetadata(default(string), CurrentFolderChanged));
+            "CurrentFolder", typeof(string), typeof(FolderTree), new PropertyMetadata(default(string), CurrentFolderChanged));
 
         private static void CurrentFolderChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
         {
             FolderTree folderTree = (FolderTree)dependencyObject;
-            var item =  folderTree.FindItem(folderTree.FoldersTree, (string)dependencyPropertyChangedEventArgs.NewValue);
-            if (item!=null)
+            var item = folderTree.FindItem(folderTree.FoldersTree, (string)dependencyPropertyChangedEventArgs.NewValue);
+            if (item != null)
                 folderTree.SelectItem(item);
         }
 
         public string CurrentFolder
         {
-            get { return (string) GetValue(CurrentFolderProperty); }
+            get { return (string)GetValue(CurrentFolderProperty); }
             set { SetValue(CurrentFolderProperty, value); }
         }
         private readonly object _dummyNode = null;
@@ -40,11 +40,11 @@ namespace SvgToXaml.Explorer
         }
 
         public static readonly DependencyProperty ContextMenuCommandsProperty = DependencyProperty.Register(
-            "ContextMenuCommands", typeof (ObservableCollection<Tuple<object, ICommand>>), typeof (FolderTree), new PropertyMetadata(default(ObservableCollection<Tuple<object, ICommand>>)));
+            "ContextMenuCommands", typeof(ObservableCollection<Tuple<object, ICommand>>), typeof(FolderTree), new PropertyMetadata(default(ObservableCollection<Tuple<object, ICommand>>)));
 
         public ObservableCollection<Tuple<object, ICommand>> ContextMenuCommands
         {
-            get { return (ObservableCollection<Tuple<object, ICommand>>) GetValue(ContextMenuCommandsProperty); }
+            get { return (ObservableCollection<Tuple<object, ICommand>>)GetValue(ContextMenuCommandsProperty); }
             set { SetValue(ContextMenuCommandsProperty, value); }
         }
 
@@ -56,11 +56,17 @@ namespace SvgToXaml.Explorer
 
         private void FillRootLevel()
         {
-            foreach (var drive in Directory.GetLogicalDrives())
+            string[] nodes = [Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+                , Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+                , .. Directory.GetLogicalDrives()];
+
+            foreach (var drive in nodes)
             {
-                var item = new TreeViewItem();
-                item.Header = drive;
-                item.Tag = drive;
+                var item = new TreeViewItem
+                {
+                    Header = drive,
+                    Tag = drive
+                };
                 item.Items.Add(_dummyNode);
                 item.Expanded += folder_Expanded;
 
@@ -74,14 +80,14 @@ namespace SvgToXaml.Explorer
 
         private void folder_Expanded(object sender, RoutedEventArgs e)
         {
-            var item = (TreeViewItem) sender;
+            var item = (TreeViewItem)sender;
             if (item.Items.Count == 1 && item.Items[0] == _dummyNode)
             {
                 item.Items.Clear();
                 try
                 {
                     if (item.Tag != null)
-                        foreach (var dir in Directory.GetDirectories((string) item.Tag))
+                        foreach (var dir in Directory.GetDirectories((string)item.Tag))
                         {
                             var subitem = new TreeViewItem();
                             subitem.Header = new DirectoryInfo(dir).Name;
